@@ -3,7 +3,7 @@ const ctx = screen.getContext('2d');
 screen.width = window.innerWidth;
 screen.height = window.innerHeight;
 const FRAMES_PER_SECOND = 60;
-
+const collision = false;
 const backgroundColor = '#001';
 
 const drawRect = (x, y, w, h, color) => {
@@ -21,13 +21,19 @@ const drawCircle = (x, y, r, color) => {
 	ctx.fill();
 }
 
-function Ball(x=screen.width/2, y=screen.width/2, r=10, color, speed, degrees=0) {
-	this.x = x;
-    this.y = y;
+const drawText = (text, x, y, color) => {
+    ctx.fillStyle = color;
+    ctx.font = '30px Arial';
+    ctx.fillText(text, x, y);
+}
+
+function Ball(x=screen.width/2, y=screen.width/2, r=10, color, velX, velY) {
+	this.x = x+r;
+    this.y = y-r;
 	this.r = r;
 	this.color = color;
-    this.velocityY = Math.sin(degrees) * speed;
-	this.velocityX = Math.cos(degrees) * speed;
+	this.velocityX = velX;
+    this.velocityY = velY;
     this.render = () => {
         drawCircle(this.x, this.y, this.r, this.color);
     }
@@ -42,41 +48,83 @@ function Ball(x=screen.width/2, y=screen.width/2, r=10, color, speed, degrees=0)
         if (this.y >= screen.height || this.y <= 0){
             this.velocityY *= -1
         }
+        /* ----------------------------- ball collision ----------------------------- */
+        if (!collision) {
+            return;
+        }
+        balls.forEach(ball => {
+            if (this === ball) {
+                return;
+            }
+            if (Math.sqrt(Math.pow(this.x-ball.x, 2) + Math.pow(this.y-ball.y, 2)) <= this.r+ball.r) {
+                this.velocityX *= -1;
+                this.velocityY *= -1;
+                ball.velocityX *= -1;
+                ball.velocityY *= -1;
+            }
+        });
     }
 }
 
+const balls = [];
 
+const addBall = () => {
+    balls.push(new Ball(
+        // x
+        Math.floor(Math.random() * screen.width),
+        // y
+        Math.floor(Math.random() * screen.height),
 
+        // radius
+        // min: 10, max: 25
+        Math.floor(Math.random() * (25 - 10)) + 10,
+        
 
+        // color
+        '#'+Math.floor(Math.random()*(0xffffff + 1)).toString(16),
 
+        // velocityX
+        Math.random()*10-5,
+        // velocityY
+        Math.random()*10-5
+    ));
+}
 
-const ball = new Ball(screen.width/2, screen.height/2, 10, 'white', 5, 180);
-
-const ball2 = new Ball(screen.width/2, screen.height/2, 10, 'skyblue', 10, 2);
-const ball3 = new Ball(screen.width/2, screen.height/2, 10, '#bfb', 2, 10);
-
+document.addEventListener('keydown', e => {
+    switch (e.key) {
+        case ' ':
+            addBall();
+            break;
+        case 'Backspace':
+            balls.pop();
+            break;
+    }
+});
+document.addEventListener('click', () => {
+    addBall();
+});
 
 const update = () => {
-    ball.move();
-    ball2.move();
-    ball3.move();
+   for (let i = 0; i < balls.length; i++) {
+         balls[i].move();
+    }
 }
 
 const render = () => {
-    // screen.width = window.innerWidth;
-    // screen.height = window.innerHeight;
-
 	// background
 	drawRect(0, 0, screen.width, screen.height, backgroundColor);
 
+    // ball counter
+    drawText(balls.length, 0+30, 0+30, '#fff');
+
 	//ball
-	ball.render();
-    ball2.render();
-    ball3.render();
+	for (let i = 0; i < balls.length; i++) {
+        balls[i].render();
+    }
 }
 
 const game = () => {
-	render();
+    render();
 	update();
 }
 
