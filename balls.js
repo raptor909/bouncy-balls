@@ -28,8 +28,8 @@ const drawText = (text, x, y, color) => {
 }
 
 function Ball(x=screen.width/2, y=screen.width/2, r=10, color, velX, velY) {
-	this.x = x+r;
-    this.y = y-r;
+	this.x = x;
+    this.y = y;
 	this.r = r;
 	this.color = color;
 	this.velocityX = velX;
@@ -66,14 +66,23 @@ function Ball(x=screen.width/2, y=screen.width/2, r=10, color, velX, velY) {
     }
 }
 
+let mouseX = 0;
+let mouseY = 0;
+
+document.addEventListener('mousemove', (e) => {
+    mouseX = e.clientX;
+    mouseY = e.clientY;
+});
+
+
 const balls = [];
 
 const addBall = () => {
     balls.push(new Ball(
         // x
-        Math.floor(Math.random() * screen.width),
+        mouseX,
         // y
-        Math.floor(Math.random() * screen.height),
+        mouseY,
 
         // radius
         // min: 10, max: 25
@@ -100,7 +109,7 @@ document.addEventListener('keydown', e => {
             break;
     }
 });
-document.addEventListener('click', () => {
+document.addEventListener('mousedown', () => {
     addBall();
 });
 
@@ -111,6 +120,9 @@ const update = () => {
 }
 
 const render = () => {
+    screen.width = window.innerWidth;
+    screen.height = window.innerHeight;
+
 	// background
 	drawRect(0, 0, screen.width, screen.height, backgroundColor);
 
