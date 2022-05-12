@@ -3,9 +3,10 @@ const ctx = screen.getContext('2d');
 screen.width = window.innerWidth;
 screen.height = window.innerHeight;
 const FRAMES_PER_SECOND = 60;
-const collision = false;
 const backgroundColor = '#001';
-
+const collision = false;
+const gravity = true;
+const gravityBounceMultiplier = 0.75;
 const drawRect = (x, y, w, h, color) => {
 	ctx.fillStyle = color;
 	ctx.beginPath();
@@ -27,27 +28,48 @@ const drawText = (text, x, y, color) => {
     ctx.fillText(text, x, y);
 }
 
-function Ball(x=screen.width/2, y=screen.width/2, r=10, color, velX, velY) {
+function Ball(x=screen.width/2, y=screen.width/2, r=10, color='fff', velX, velY) {
 	this.x = x;
     this.y = y;
 	this.r = r;
 	this.color = color;
 	this.velocityX = velX;
     this.velocityY = velY;
+
+
     this.render = () => {
         drawCircle(this.x, this.y, this.r, this.color);
     }
+
+
     this.move = () => {
+
+        if (gravity) this.velocityY += 1;
+
         this.x += this.velocityX;
         this.y += this.velocityY;
 
         /* ----------------------------- wall collision ----------------------------- */
         if (this.x+this.r >= screen.width || this.x-this.r <= 0){
-            this.velocityX *= -1
+            this.velocityX *= -1 * (gravity ? (gravityBounceMultiplier) : 1)
         }
         if (this.y >= screen.height || this.y <= 0){
-            this.velocityY *= -1
+            this.velocityY *= -1 * (gravity ? (gravityBounceMultiplier) : 1)
         }
+
+        /* ----------------------- bottom of screen (gravity) ----------------------- */
+        if (gravity && (this.y+this.r >= screen.height && this.velocityY >= 0)){
+            this.y = screen.height-this.r;
+            this.velocityY = 0;
+        }
+
+        /* ----------------------------- ball out of screen ----------------------------- */
+        if (this.x > screen.width+50 || this.x < -50 || this.y > screen.height+50 || this.y < -50) {
+            balls.splice(balls.indexOf(this), 1);
+        }
+
+
+
         /* ----------------------------- ball collision ----------------------------- */
         if (!collision) {
             return;
@@ -66,17 +88,8 @@ function Ball(x=screen.width/2, y=screen.width/2, r=10, color, velX, velY) {
     }
 }
 
-let mouseX = 0;
-let mouseY = 0;
-
-document.addEventListener('mousemove', (e) => {
-    mouseX = e.clientX;
-    mouseY = e.clientY;
-});
-
 
 const balls = [];
-
 const addBall = () => {
     balls.push(new Ball(
         // x
@@ -99,19 +112,37 @@ const addBall = () => {
     ));
 }
 
+
+let mouseX = 0;
+let mouseY = 0;
+
+document.addEventListener('mousemove', e => {
+    mouseX = e.clientX;
+    mouseY = e.clientY;
+});
+
 document.addEventListener('keydown', e => {
     switch (e.key) {
         case ' ':
-            addBall();
+            // add 50 balls
+            for (let i = 0; i < 1; i++) {
+                addBall();
+            }
             break;
         case 'Backspace':
-            balls.pop();
+            for(let i = 0; i < balls.length; i++) {
+                balls.splice(i, 1);
+            }
             break;
     }
 });
-document.addEventListener('mousedown', () => {
-    addBall();
-});
+
+
+document.addEventListener('mousedown', () => {for(let i = 0; i < 50; i++) addBall()});
+
+
+
+
 
 const update = () => {
    for (let i = 0; i < balls.length; i++) {
@@ -126,13 +157,13 @@ const render = () => {
 	// background
 	drawRect(0, 0, screen.width, screen.height, backgroundColor);
 
-    // ball counter
-    drawText(balls.length, 0+30, 0+30, '#fff');
-
 	//ball
 	for (let i = 0; i < balls.length; i++) {
         balls[i].render();
     }
+
+    // ball counter
+    drawText(balls.length, 0+30, 0+30, '#fff');
 }
 
 const game = () => {
