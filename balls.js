@@ -5,7 +5,7 @@ screen.height = window.innerHeight;
 const FRAMES_PER_SECOND = 60;
 const backgroundColor = '#001';
 const collision = false;
-const gravity = true;
+let gravity = true;
 const gravityBounceMultiplier = 0.75;
 const drawRect = (x, y, w, h, color) => {
 	ctx.fillStyle = color;
@@ -133,6 +133,9 @@ document.addEventListener('keydown', e => {
             for(let i = 0; i < balls.length; i++) {
                 balls.splice(i, 1);
             }
+            break;
+        case 'g':
+            gravity = !gravity;
             break;
     }
 });
